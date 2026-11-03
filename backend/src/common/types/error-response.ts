@@ -1,0 +1,15 @@
+export interface ErrorDetail {
+  readonly field?: string;
+  readonly code?: string;
+  readonly component?: string;
+  readonly status?: string;
+}
+
+export interface ErrorResponse {
+  readonly error: {
+    readonly code: string;
+    readonly message: string;
+    readonly requestId: string;
+    readonly details: readonly ErrorDetail[];
+  };
+}

@@ -1,0 +1,90 @@
+# Dependencies
+node_modules/
+.pnp
+.pnp.*
+.yarn/*
+!.yarn/patches
+!.yarn/plugins
+!.yarn/releases
+!.yarn/versions
+
+# Compiled output
+/dist
+/build
+/out
+*.tsbuildinfo
+
+# Environment variables (keep the template)
+.env
+.env.*
+!.env.example
+
+# Secrets & credentials
+*.pem
+*.key
+*.crt
+*.p12
+*.pfx
+secrets/
+credentials.json
+service-account*.json
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+# Tests & coverage
+/coverage
+/.nyc_output
+junit.xml
+
+# Local data & uploads (database files, user-uploaded documents/media)
+*.sqlite
+*.sqlite3
+*.db
+/data/
+/uploads/
+/storage/
+/tmp/
+
+# Prisma local artifacts
+prisma/*.db
+prisma/*.db-journal
+
+# Docker local overrides
+docker-compose.override.yml
+
+# OS files
+.DS_Store
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+
+# Editors & IDEs
+.idea/
+.vscode/*
+!.vscode/extensions.json
+!.vscode/settings.json
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# Temporary files
+*.tmp
+*.temp
+*.bak
+*.orig
+pids
+*.pid
+*.seed
+*.pid.lock
+
+# Diagnostic reports
+report.[0-9]*.[0-9]*.[0-9]*.[0-9]*.json

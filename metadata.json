@@ -1,0 +1,6 @@
+{
+  "name": "DocuMind AI",
+  "description": "Plateforme SaaS multimodale d'intelligence documentaire, de génération de contenus et d'automatisation.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

@@ -6,22 +6,34 @@ import {
   type ExceptionFilter,
 } from '@nestjs/common';
 import type { Request, Response } from 'express';
-import type { ErrorDetail, ErrorResponse } from '../types/error-response';
+import type {
+  ErrorDetailResponseDto,
+  ErrorResponseDto,
+} from '../types/error-response';
 
 interface NestErrorBody {
-  readonly error?: string;
+  readonly code?: string;
+  readonly details?: readonly ErrorDetailResponseDto[];
   readonly message?: string | readonly string[];
-  readonly statusCode?: number;
 }
 
 function isNestErrorBody(value: unknown): value is NestErrorBody {
   return typeof value === 'object' && value !== null;
 }
 
-function detailsFromMessage(message: unknown): readonly ErrorDetail[] {
-  return Array.isArray(message)
-    ? message.map((item) => ({ code: 'VALIDATION_ERROR', field: String(item) }))
-    : [];
+function isErrorDetail(value: unknown): value is ErrorDetailResponseDto {
+  return (
+    typeof value === 'object' &&
+    value !== null &&
+    'code' in value &&
+    typeof value.code === 'string' &&
+    (!('field' in value) || typeof value.field === 'string')
+  );
+}
+
+function detailsFromBody(body: unknown): readonly ErrorDetailResponseDto[] {
+  if (!isNestErrorBody(body) || !Array.isArray(body.details)) return [];
+  return body.details.filter(isErrorDetail);
 }
 
 function publicMessage(status: number, body: unknown): string {
@@ -33,18 +45,27 @@ function publicMessage(status: number, body: unknown): string {
 
   if (isNestErrorBody(body)) {
     if (typeof body.message === 'string') return body.message;
-    if (typeof body.error === 'string') return body.error;
   }
   return 'Request failed.';
 }
 
 function errorCode(status: number): string {
-  const names: Partial<Record<number, string>> = {
+  const names: Readonly<Record<number, string>> = {
     [HttpStatus.BAD_REQUEST]: 'BAD_REQUEST',
+    [HttpStatus.UNAUTHORIZED]: 'UNAUTHORIZED',
+    [HttpStatus.FORBIDDEN]: 'FORBIDDEN',
     [HttpStatus.NOT_FOUND]: 'RESOURCE_NOT_FOUND',
+    [HttpStatus.METHOD_NOT_ALLOWED]: 'METHOD_NOT_ALLOWED',
+    [HttpStatus.CONFLICT]: 'CONFLICT',
+    [HttpStatus.PAYLOAD_TOO_LARGE]: 'PAYLOAD_TOO_LARGE',
+    [HttpStatus.UNSUPPORTED_MEDIA_TYPE]: 'UNSUPPORTED_MEDIA_TYPE',
+    [HttpStatus.UNPROCESSABLE_ENTITY]: 'UNPROCESSABLE_ENTITY',
+    [HttpStatus.TOO_MANY_REQUESTS]: 'TOO_MANY_REQUESTS',
+    [HttpStatus.BAD_GATEWAY]: 'UPSTREAM_SERVICE_ERROR',
     [HttpStatus.SERVICE_UNAVAILABLE]: 'SERVICE_NOT_READY',
+    [HttpStatus.GATEWAY_TIMEOUT]: 'UPSTREAM_TIMEOUT',
   };
-  return names[status] ?? 'INTERNAL_SERVER_ERROR';
+  return names[status] ?? (status >= 500 ? 'INTERNAL_SERVER_ERROR' : 'REQUEST_FAILED');
 }
 
 @Catch()
@@ -59,14 +80,17 @@ export class HttpExceptionFilter implements ExceptionFilter {
         : HttpStatus.INTERNAL_SERVER_ERROR;
     const body =
       exception instanceof HttpException ? exception.getResponse() : undefined;
-    const message = isNestErrorBody(body) ? body.message : undefined;
+    const code =
+      isNestErrorBody(body) && typeof body.code === 'string'
+        ? body.code
+        : errorCode(status);
 
-    const payload: ErrorResponse = {
+    const payload: ErrorResponseDto = {
       error: {
-        code: errorCode(status),
+        code,
         message: publicMessage(status, body),
         requestId: request.requestId,
-        details: detailsFromMessage(message),
+        details: detailsFromBody(body),
       },
     };
 

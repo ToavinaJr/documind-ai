@@ -23,6 +23,15 @@
 
 Codes communs : `200/201/202/204`, `400`, `401`, `403`, `404` (également pour ressource autre tenant), `409`, `413`, `415`, `422`, `429`, `500/502/503`.
 
+Les erreurs exposées par le backend utilisent le DTO OpenAPI `ErrorResponseDto` :
+`error.code` identifie la catégorie, `error.message` reste générique pour les erreurs
+serveur, `error.requestId` correspond à l'en-tête `X-Request-Id`, et `error.details`
+contient les champs et contraintes rejetés par la validation. Les valeurs reçues et
+les messages internes du validateur ne sont pas renvoyés. Une validation invalide
+retourne `400` avec `code: "VALIDATION_FAILED"`; les erreurs HTTP connues utilisent
+un code stable correspondant au statut (`UNAUTHORIZED`, `FORBIDDEN`, `CONFLICT`,
+`TOO_MANY_REQUESTS`, etc.).
+
 ## 2. Catalogue minimal d'endpoints
 
 | Module | Méthode et URL | Permission | Entrée / sortie principale |

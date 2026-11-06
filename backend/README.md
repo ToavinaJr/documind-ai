@@ -1,6 +1,6 @@
 # DocuMind AI backend
 
-NestJS technical foundation for the DocuMind AI API. This increment provides PostgreSQL connectivity, health checks, OpenAPI and normalized errors. It does not yet implement authentication or business modules.
+NestJS technical foundation for the DocuMind AI API. This increment provides PostgreSQL connectivity, health checks, OpenAPI and normalized errors. The Prisma schema currently defines the initial user, organization, membership and session models, but authentication and business endpoints are not implemented yet.
 
 ## Prerequisites
 
@@ -39,7 +39,7 @@ The API listens on `http://localhost:3001` by default.
 
 ## Database changes
 
-The initial Prisma schema intentionally contains no business models. Once a model and its rules are approved:
+The initial Prisma models do not yet have a confirmed migration applied to the development database. Verify `DATABASE_URL` and PostgreSQL credentials before creating or applying migrations. Once the database connection is confirmed and a model change is reviewed:
 
 ```bash
 bun run prisma:migrate -- --name descriptive_migration_name

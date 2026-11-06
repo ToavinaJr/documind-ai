@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { Outlet, NavLink, useLocation, useNavigate } from 'react-router-dom';
+import React, { useEffect, useRef, useState } from 'react';
+import { Link, Outlet, NavLink, useLocation } from 'react-router-dom';
 import { DemoToolbar } from '../components/common/DemoToolbar';
 import { useAuth } from '../context/AuthContext';
 import { useQuota } from '../context/QuotaContext';
@@ -33,16 +33,57 @@ import {
   Zap,
   Activity
 } from 'lucide-react';
+import type { LucideIcon } from 'lucide-react';
 
 export const WorkspaceLayout: React.FC = () => {
   const { currentUser, currentOrganization, currentRole, logout, availableOrganizations, switchOrganization } = useAuth();
   const { plan, quotaStatuses } = useQuota();
   const location = useLocation();
-  const navigate = useNavigate();
 
   // Sidebar collapse states
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const mobileNavigationRef = useRef<HTMLElement>(null);
+
+  useEffect(() => {
+    if (!mobileMenuOpen) return;
+
+    const previouslyFocusedElement = document.activeElement instanceof HTMLElement
+      ? document.activeElement
+      : null;
+    const getFocusableElements = () => Array.from(
+      mobileNavigationRef.current?.querySelectorAll<HTMLElement>(
+        'a[href], button:not([disabled]), [tabindex]:not([tabindex="-1"])',
+      ) ?? [],
+    );
+    getFocusableElements()[0]?.focus();
+
+    const handleDialogKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        setMobileMenuOpen(false);
+        return;
+      }
+
+      if (event.key !== 'Tab') return;
+      const focusableElements = getFocusableElements();
+      const first = focusableElements[0];
+      const last = focusableElements[focusableElements.length - 1];
+
+      if (event.shiftKey && document.activeElement === first) {
+        event.preventDefault();
+        last?.focus();
+      } else if (!event.shiftKey && document.activeElement === last) {
+        event.preventDefault();
+        first?.focus();
+      }
+    };
+
+    window.addEventListener('keydown', handleDialogKeyDown);
+    return () => {
+      window.removeEventListener('keydown', handleDialogKeyDown);
+      previouslyFocusedElement?.focus();
+    };
+  }, [mobileMenuOpen]);
 
   // Group accordion states (default open for active route's group)
   const [openGroups, setOpenGroups] = useState<Record<string, boolean>>({
@@ -59,8 +100,7 @@ export const WorkspaceLayout: React.FC = () => {
 interface NavItem {
   label: string;
   path: string;
-  icon: any;
-  color: string;
+  icon: LucideIcon;
   badge?: string;
 }
 
@@ -77,8 +117,8 @@ interface NavSection {
       id: 'main',
       type: 'direct',
       items: [
-        { label: 'Vue d’ensemble', path: '/workspace/dashboard', icon: LayoutDashboard, color: '#DE1F4F' },
-        { label: 'Projets récents', path: '/workspace/projects', icon: FolderGit2, color: '#3986A8' }
+        { label: 'Vue d’ensemble', path: '/workspace/dashboard', icon: LayoutDashboard },
+        { label: 'Projets récents', path: '/workspace/projects', icon: FolderGit2 }
       ]
     },
     {
@@ -86,11 +126,11 @@ interface NavSection {
       title: 'INTELLIGENCE',
       type: 'collapsible',
       items: [
-        { label: 'Documents', path: '/workspace/documents', icon: FileText, color: '#DE1F4F', badge: 'OCR' },
-        { label: 'Audio & Voix', path: '/workspace/audio', icon: Mic, color: '#3986A8', badge: 'Diarisé' },
-        { label: 'Analyse Vidéo', path: '/workspace/video', icon: Video, color: '#E65B7D' },
-        { label: 'OCR & Extraction', path: '/workspace/ocr', icon: ScanText, color: '#DE1F4F' },
-        { label: 'Historique', path: '/workspace/history', icon: History, color: '#3986A8' }
+        { label: 'Documents', path: '/workspace/documents', icon: FileText, badge: 'OCR' },
+        { label: 'Audio & Voix', path: '/workspace/audio', icon: Mic, badge: 'Diarisé' },
+        { label: 'Analyse Vidéo', path: '/workspace/video', icon: Video },
+        { label: 'OCR & Extraction', path: '/workspace/ocr', icon: ScanText },
+        { label: 'Historique', path: '/workspace/history', icon: History }
       ]
     },
     {
@@ -98,11 +138,11 @@ interface NavSection {
       title: 'CRÉATION',
       type: 'collapsible',
       items: [
-        { label: 'Document Studio', path: '/workspace/document-studio', icon: FileSpreadsheet, color: '#3986A8' },
-        { label: 'Présentations', path: '/workspace/presentations', icon: Presentation, color: '#3986A8' },
-        { label: 'Studio Vidéo', path: '/workspace/video-studio', icon: Clapperboard, color: '#E65B7D', badge: 'Nouveau' },
-        { label: 'Contenu Marketing', path: '/workspace/content-studio', icon: Sparkles, color: '#E65B7D' },
-        { label: 'Templates', path: '/workspace/templates', icon: BookTemplate, color: '#DE1F4F' }
+        { label: 'Document Studio', path: '/workspace/document-studio', icon: FileSpreadsheet },
+        { label: 'Présentations', path: '/workspace/presentations', icon: Presentation },
+        { label: 'Studio Vidéo', path: '/workspace/video-studio', icon: Clapperboard, badge: 'Nouveau' },
+        { label: 'Contenu Marketing', path: '/workspace/content-studio', icon: Sparkles },
+        { label: 'Templates', path: '/workspace/templates', icon: BookTemplate }
       ]
     },
     {
@@ -110,8 +150,8 @@ interface NavSection {
       title: 'AUTOMATISATION',
       type: 'collapsible',
       items: [
-        { label: 'Workflows', path: '/workspace/workflows', icon: GitBranch, color: '#DE1F4F' },
-        { label: 'Exécutions', path: '/workspace/history', icon: Activity, color: '#3986A8' }
+        { label: 'Workflows', path: '/workspace/workflows', icon: GitBranch },
+        { label: 'Exécutions', path: '/workspace/history', icon: Activity }
       ]
     },
     {
@@ -119,11 +159,11 @@ interface NavSection {
       title: 'ORGANISATION & COMPTE',
       type: 'collapsible',
       items: [
-        { label: 'Membres & Équipe', path: '/workspace/members', icon: Users, color: '#DE1F4F' },
-        { label: 'Rôles & Accès', path: '/workspace/roles', icon: ShieldCheck, color: '#3986A8' },
-        { label: 'Quotas & Limites', path: '/workspace/usage', icon: BarChart3, color: '#D99A35' },
-        { label: 'Facturation & Plans', path: '/workspace/billing', icon: CreditCard, color: '#20A477' },
-        { label: 'Paramètres', path: '/workspace/settings', icon: Settings, color: '#64748B' }
+        { label: 'Membres & Équipe', path: '/workspace/members', icon: Users },
+        { label: 'Rôles & Accès', path: '/workspace/roles', icon: ShieldCheck },
+        { label: 'Quotas & Limites', path: '/workspace/usage', icon: BarChart3 },
+        { label: 'Facturation & Plans', path: '/workspace/billing', icon: CreditCard },
+        { label: 'Paramètres', path: '/workspace/settings', icon: Settings }
       ]
     }
   ];
@@ -132,23 +172,23 @@ interface NavSection {
     for (const sec of navSections) {
       for (const it of sec.items) {
         if (location.pathname === it.path || location.pathname.startsWith(it.path + '/')) {
-          return { section: sec.title || 'Workspace', item: it.label, color: it.color };
+          return { section: sec.title || 'Workspace', item: it.label };
         }
       }
     }
-    return { section: 'Workspace', item: 'Tableau de bord', color: '#DE1F4F' };
+    return { section: 'Workspace', item: 'Tableau de bord' };
   };
 
   const currentBc = getCurrentBreadcrumb();
 
   return (
-    <div className="min-h-screen flex flex-col bg-[#F5F8FC] dark:bg-[#09090B] text-[#0F172A] dark:text-[#F2F2F5] transition-colors">
+    <div className="dm-app min-h-screen flex flex-col bg-[#F5F8FC] dark:bg-[#09090B] text-[#0F172A] dark:text-[#F2F2F5] transition-colors">
       <DemoToolbar />
 
       <div className="flex-1 flex overflow-hidden">
         {/* Desktop Sidebar (Magnific & Linear inspired) */}
         <aside
-          className={`hidden lg:flex flex-col bg-[#F8FAFD] dark:bg-[#0F0F13] border-r border-[#DCE3EC] dark:border-[#303038] transition-all duration-200 shrink-0 select-none ${
+          className={`hidden lg:flex flex-col bg-[#F8FAFD] dark:bg-[#0F0F13] border-r border-[#DCE3EC] dark:border-[#303038] shrink-0 select-none ${
             isSidebarCollapsed ? 'w-18' : 'w-64'
           }`}
         >
@@ -156,8 +196,7 @@ interface NavSection {
           <div className="p-3.5 border-b border-[#DCE3EC] dark:border-[#303038]">
             <div className="flex items-center justify-between gap-2">
               <div className="flex items-center gap-2.5 min-w-0">
-                {/* Brand Icon: Vibrant Violet with subtle glow */}
-                <div className="w-8 h-8 rounded-xl bg-gradient-to-tr from-[#DE1F4F] to-[#3986A8] text-white flex items-center justify-center font-extrabold text-sm shadow-sm shadow-[#DE1F4F]/20 shrink-0">
+                <div className="w-8 h-8 rounded bg-[#DE1F4F] text-white flex items-center justify-center font-bold text-sm shrink-0">
                   D
                 </div>
                 {!isSidebarCollapsed && (
@@ -177,15 +216,16 @@ interface NavSection {
 
               {/* Collapse/Expand Toggle Button */}
               <button
+                type="button"
                 onClick={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
                 className="p-1 rounded-lg text-[#64748B] dark:text-[#A1A1AA] hover:text-[#0F172A] dark:hover:text-white hover:bg-[#EEF2F7] dark:hover:bg-[#26262D] transition-colors shrink-0"
                 title={isSidebarCollapsed ? 'Agrandir la sidebar' : 'Réduire la sidebar'}
                 aria-label={isSidebarCollapsed ? 'Agrandir la navigation' : 'Réduire la navigation'}
               >
                 {isSidebarCollapsed ? (
-                  <PanelLeftOpen className="w-4 h-4 text-[#DE1F4F]" />
+                  <PanelLeftOpen className="w-4 h-4 text-[#DE1F4F]" aria-hidden="true" />
                 ) : (
-                  <PanelLeftClose className="w-4 h-4" />
+                  <PanelLeftClose className="w-4 h-4" aria-hidden="true" />
                 )}
               </button>
             </div>
@@ -205,14 +245,14 @@ interface NavSection {
                           to={item.path}
                           title={isSidebarCollapsed ? item.label : undefined}
                           className={({ isActive }) =>
-                            `flex items-center gap-2.5 px-2.5 py-2 text-xs rounded-lg transition-all ${
+                            `flex items-center gap-2.5 px-2.5 py-2 text-xs rounded-lg transition-colors ${
                               isActive
                                 ? 'bg-[#FCE8EE] dark:bg-[#DE1F4F]/20 text-[#DE1F4F] dark:text-[#F04470] font-semibold'
                                 : 'text-[#64748B] dark:text-[#A1A1AA] hover:text-[#0F172A] dark:hover:text-[#F2F2F5] hover:bg-[#EEF2F7] dark:hover:bg-[#26262D]'
                             } ${isSidebarCollapsed ? 'justify-center px-0' : ''}`
                           }
                         >
-                          <Icon className="w-4 h-4 shrink-0" style={{ color: item.color }} />
+                          <Icon className="w-4 h-4 shrink-0" aria-hidden="true" />
                           {!isSidebarCollapsed && <span className="truncate">{item.label}</span>}
                         </NavLink>
                       );
@@ -228,6 +268,7 @@ interface NavSection {
                   {/* Group Header with Accordion Toggle */}
                   {!isSidebarCollapsed ? (
                     <button
+                      type="button"
                       onClick={() => toggleGroup(sec.id)}
                       className="w-full flex items-center justify-between px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider text-[#64748B] dark:text-[#A1A1AA] hover:text-[#0F172A] dark:hover:text-white transition-colors"
                     >
@@ -236,6 +277,7 @@ interface NavSection {
                         className={`w-3.5 h-3.5 transition-transform duration-150 ${
                           isOpen ? 'rotate-0' : '-rotate-90'
                         }`}
+                        aria-hidden="true"
                       />
                     </button>
                   ) : (
@@ -253,7 +295,7 @@ interface NavSection {
                             to={item.path}
                             title={isSidebarCollapsed ? item.label : undefined}
                             className={({ isActive }) =>
-                              `flex items-center justify-between px-2.5 py-1.5 text-xs rounded-lg transition-all ${
+                              `flex items-center justify-between px-2.5 py-1.5 text-xs rounded-lg transition-colors ${
                                 isActive
                                   ? 'bg-[#FCE8EE] dark:bg-[#DE1F4F]/20 text-[#DE1F4F] dark:text-[#F04470] font-semibold'
                                   : 'text-[#64748B] dark:text-[#A1A1AA] hover:text-[#0F172A] dark:hover:text-[#F2F2F5] hover:bg-[#EEF2F7] dark:hover:bg-[#26262D]'
@@ -261,7 +303,7 @@ interface NavSection {
                             }
                           >
                             <div className="flex items-center gap-2.5 min-w-0">
-                              <Icon className="w-4 h-4 shrink-0" style={{ color: item.color }} />
+                              <Icon className="w-4 h-4 shrink-0" aria-hidden="true" />
                               {!isSidebarCollapsed && <span className="truncate">{item.label}</span>}
                             </div>
 
@@ -292,7 +334,7 @@ interface NavSection {
                 </div>
                 <div className="w-full bg-[#EEF2F7] dark:bg-[#26262D] h-1.5 rounded-full overflow-hidden">
                   <div
-                    className="h-full rounded-full transition-all bg-[#DE1F4F]"
+                    className="h-full rounded-full transition-[width] bg-[#DE1F4F]"
                     style={{ width: `${Math.min(100, quotaStatuses.documentsPerMonth?.percentage || 0)}%` }}
                   />
                 </div>
@@ -301,7 +343,7 @@ interface NavSection {
 
             <div className={`flex items-center justify-between ${isSidebarCollapsed ? 'justify-center' : ''}`}>
               <div className="flex items-center gap-2 min-w-0">
-                <div className="w-7 h-7 rounded-full bg-gradient-to-tr from-[#DE1F4F] to-[#E65B7D] text-white flex items-center justify-center font-bold text-xs shrink-0">
+                <div className="w-7 h-7 rounded-full bg-linear-to-tr from-[#DE1F4F] to-[#E65B7D] text-white flex items-center justify-center font-bold text-xs shrink-0">
                   {currentUser.firstName.charAt(0)}
                 </div>
                 {!isSidebarCollapsed && (
@@ -318,11 +360,13 @@ interface NavSection {
 
               {!isSidebarCollapsed && (
                 <button
+                  type="button"
                   onClick={logout}
                   title="Déconnexion"
+                  aria-label="Se déconnecter"
                   className="p-1.5 text-[#64748B] hover:text-[#DC3545] rounded hover:bg-[#EEF2F7] dark:hover:bg-[#26262D] transition-colors"
                 >
-                  <LogOut className="w-3.5 h-3.5" />
+                  <LogOut className="w-3.5 h-3.5" aria-hidden="true" />
                 </button>
               )}
             </div>
@@ -332,17 +376,30 @@ interface NavSection {
         {/* Mobile Sidebar Drawer */}
         {mobileMenuOpen && (
           <div className="fixed inset-0 z-50 lg:hidden flex">
-            <div className="fixed inset-0 bg-black/60 backdrop-blur-sm" onClick={() => setMobileMenuOpen(false)} />
-            <div className="relative w-72 max-w-[85%] bg-[#F8FAFD] dark:bg-[#0F0F13] h-full flex flex-col p-4 shadow-2xl z-10 border-r border-[#DCE3EC] dark:border-[#303038]">
+            <button
+              type="button"
+              className="fixed inset-0 bg-black/60"
+              onClick={() => setMobileMenuOpen(false)}
+              aria-hidden="true"
+              tabIndex={-1}
+            />
+            <aside
+              ref={mobileNavigationRef}
+              id="workspace-mobile-navigation"
+              role="dialog"
+              aria-modal="true"
+              aria-label="Navigation workspace"
+              className="relative w-72 max-w-[85%] bg-[#F8FAFD] dark:bg-[#0F0F13] h-full flex flex-col p-4 z-10 border-r border-[#DCE3EC] dark:border-[#303038]"
+            >
               <div className="flex items-center justify-between pb-3 border-b border-[#DCE3EC] dark:border-[#303038]">
                 <div className="font-bold text-sm text-[#0F172A] dark:text-[#F2F2F5] flex items-center gap-2">
-                  <div className="w-6 h-6 rounded-lg bg-[#DE1F4F] text-white flex items-center justify-center font-bold text-xs">
+                  <div aria-hidden="true" className="w-6 h-6 rounded-lg bg-[#DE1F4F] text-white flex items-center justify-center font-bold text-xs">
                     D
                   </div>
                   <span>DocuMind AI</span>
                 </div>
-                <button onClick={() => setMobileMenuOpen(false)} className="p-1 rounded text-[#64748B]">
-                  <X className="w-5 h-5" />
+                <button type="button" onClick={() => setMobileMenuOpen(false)} className="p-1 rounded text-[#64748B]" aria-label="Fermer la navigation">
+                  <X className="w-5 h-5" aria-hidden="true" />
                 </button>
               </div>
 
@@ -368,7 +425,7 @@ interface NavSection {
                             }`
                           }
                         >
-                          <item.icon className="w-4 h-4" style={{ color: item.color }} />
+                          <item.icon className="w-4 h-4" aria-hidden="true" />
                           <span>{item.label}</span>
                         </NavLink>
                       ))}
@@ -376,7 +433,7 @@ interface NavSection {
                   </div>
                 ))}
               </div>
-            </div>
+            </aside>
           </div>
         )}
 
@@ -386,32 +443,36 @@ interface NavSection {
           <header className="h-14 bg-white/95 dark:bg-[#1A1A1F]/95 backdrop-blur-md border-b border-[#DCE3EC] dark:border-[#303038] px-6 flex items-center justify-between gap-4 shrink-0 sticky top-0 z-20">
             <div className="flex items-center gap-2.5">
               <button
+                type="button"
                 onClick={() => setMobileMenuOpen(true)}
                 className="lg:hidden p-1.5 -ml-2 text-[#64748B] hover:bg-[#EEF2F7] dark:hover:bg-[#26262D] rounded-lg"
+                aria-label="Ouvrir la navigation workspace"
+                aria-expanded={mobileMenuOpen}
+                aria-controls="workspace-mobile-navigation"
               >
-                <Menu className="w-5 h-5" />
+                <Menu className="w-5 h-5" aria-hidden="true" />
               </button>
 
               <div className="flex items-center gap-2 text-xs">
                 <span className="hidden sm:inline text-[#64748B] dark:text-[#A1A1AA]">
                   {currentOrganization?.name || 'Workspace'}
                 </span>
-                <ChevronRight className="w-3.5 h-3.5 text-[#64748B] hidden sm:inline" />
+                <ChevronRight className="w-3.5 h-3.5 text-[#64748B] hidden sm:inline" aria-hidden="true" />
                 <span className="font-semibold text-[#0F172A] dark:text-[#F2F2F5] flex items-center gap-1.5">
-                  <span className="w-2 h-2 rounded-full" style={{ backgroundColor: currentBc.color }} />
+                  <span className="w-2 h-2 rounded-full bg-[#DE1F4F]" aria-hidden="true" />
                   {currentBc.item}
                 </span>
               </div>
             </div>
 
             <div className="flex items-center gap-2 sm:gap-3">
-              <button
-                onClick={() => navigate('/workspace/documents')}
-                className="px-3.5 py-1.5 text-xs font-semibold bg-[#DE1F4F] hover:bg-[#C21843] text-white rounded-lg shadow-sm shadow-[#DE1F4F]/20 transition-all flex items-center gap-1.5"
+              <Link
+                to="/workspace/documents"
+                className="px-3.5 py-1.5 text-xs font-semibold bg-[#DE1F4F] hover:bg-[#C21843] text-white rounded-lg transition-colors flex items-center gap-1.5"
               >
-                <Zap className="w-3.5 h-3.5" />
+                <Zap className="w-3.5 h-3.5" aria-hidden="true" />
                 <span>+ Nouveau Traitement</span>
-              </button>
+              </Link>
             </div>
           </header>
 

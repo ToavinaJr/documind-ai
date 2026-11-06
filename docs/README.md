@@ -1,6 +1,6 @@
 # Dossier de conception DocuMind AI
 
-Statut : **conception cible, aucune implémentation backend réalisée**. Les constats sont fondés sur le dépôt au 3 novembre 2026.
+Statut : **dossier de conception cible avec audit d'existant actualisé au 6 novembre 2026**. Le socle technique NestJS/Prisma existe; les fonctionnalités métier restent à implémenter. Voir l'état vérifié dans [00 — Vision et audit](./00-project-overview-and-audit.md).
 
 ## Documents
 

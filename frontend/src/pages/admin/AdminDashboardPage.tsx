@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { repositories } from '../../repositories';
 import { mockStorage } from '../../mocks/storage';
 import { AuditLogItem } from '../../types';
+import { getAuditActionLabel } from '../../utils/audit-labels';
 import {
   TrendingUp,
   Building,
@@ -118,7 +119,9 @@ export const AdminDashboardPage: React.FC = () => {
                   <span className="font-semibold text-white">{log.actorEmail}</span>
                   <span className="text-[10px] text-slate-400 font-mono">({log.actorRole})</span>
                   <span className="text-slate-600">·</span>
-                  <span className="font-mono text-amber-400/90 text-[11px]">{log.action}</span>
+                  <span className="font-mono text-amber-400/90 text-[11px]" title={log.action}>
+                    {getAuditActionLabel(log.action)}
+                  </span>
                 </div>
                 <div className="text-slate-400 text-[11px] mt-0.5 truncate">{log.details}</div>
               </div>

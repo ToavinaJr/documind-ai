@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { repositories } from '../../repositories';
 import { AuditLogItem } from '../../types';
 import { FileCode2, Search, Filter, ShieldCheck } from 'lucide-react';
+import { getAuditActionLabel } from '../../utils/audit-labels';
 
 export const AdminAuditPage: React.FC = () => {
   const [logs, setLogs] = useState<AuditLogItem[]>([]);
@@ -65,7 +66,9 @@ export const AdminAuditPage: React.FC = () => {
                 <td className="py-3 px-4 font-sans text-white font-medium">
                   {log.actorEmail} <span className="text-slate-400 font-mono">({log.actorRole})</span>
                 </td>
-                <td className="py-3 px-4 text-amber-300 font-semibold">{log.action}</td>
+                <td className="py-3 px-4 text-amber-300 font-semibold">
+                  <span title={log.action}>{getAuditActionLabel(log.action)}</span>
+                </td>
                 <td className="py-3 px-4 font-sans text-slate-300 truncate max-w-xs">{log.resource}</td>
                 <td className="py-3 px-4 text-slate-400">{log.ipAddress}</td>
                 <td className="py-3 px-4 font-sans">

@@ -1,94 +1,91 @@
 # 00 — Vision et audit de l'existant
 
+Date de vérification : 6 novembre 2026. Cet audit distingue le comportement du prototype frontend, le socle backend réellement présent et la cible produit. Il ne suppose ni migration appliquée ni disponibilité correcte de la base de développement.
+
 ## 1. Vision produit
 
-DocuMind AI est une plateforme SaaS B2B multimodale : une source documentaire, audio ou vidéo doit pouvoir produire plusieurs livrables reliés, éditables et traçables. Les cibles visibles sont les directions financières, juridiques, conseil/ESN, gestion de projet, marketing B2B et, dans les données de démonstration, la santé.
+DocuMind AI vise une plateforme SaaS B2B multimodale où des documents, enregistrements audio et vidéos alimentent des traitements, validations humaines et livrables traçables. Les parcours visibles incluent aussi collaboration, facturation, administration de plateforme et automatisation.
 
 ## 2. État exécutif
 
-Le produit est un **prototype frontend haute fidélité**. La SPA est riche et navigable, mais tout le domaine applicatif est exécuté côté navigateur. Le backend NestJS, PostgreSQL, Prisma, le stockage objet et les fournisseurs IA sont absents.
-
-| Surface | État réel | Preuve fonctionnelle |
+| Surface | État observé | Preuve / limite |
 |---|---|---|
-| Site public | Fonctionnel localement | Navigation, contenu, formulaires avec feedback local |
-| Authentification | Simulée et non sécurisée | Utilisateurs/mots de passe en `localStorage` |
-| Organisations/RBAC | Partiel | Modèle de rôles riche, contrôles UI incomplets |
-| Documents/OCR | Simulé | Métadonnées de fichier et extraction prédéfinie |
-| Audio/transcription | Simulé | Aucune lecture ni transmission du fichier |
-| Vidéo/analyse | Simulé | Chapitres prédéfinis |
-| Générations | Simulé/partiel | CRUD local; exports HTML/texte, pas PDF/PPTX/vidéo natifs |
-| Workflows | Fonctionnel localement | Éditeur SVG, exécution animée et persistée localement |
-| Quotas | Fonctionnel localement | Calcul/consommation client, non opposable côté serveur |
-| Facturation | Simulée | Plans, abonnements, factures et remboursements locaux |
-| Administration | Fonctionnel localement | Écrans et mutations de données mockées |
-| Backend/API/BDD | Absent | Dépôt backend vide |
-| Tests/CI/CD | Absent | Aucun framework ou pipeline présent |
+| Site public | UI navigable, interactions locales | Le contact et les formulaires n'appellent aucun service métier |
+| Authentification | Simulation frontend | Session, mots de passe et changement d'identité gérés localement; aucun endpoint d'authentification |
+| Organisations / rôles | Simulation frontend | Les permissions et le tenant sont décidés dans React; aucune autorisation serveur |
+| Documents / OCR | Simulation | Métadonnées et résultats prédéfinis; aucun fichier conservé ni OCR exécuté |
+| Audio / transcription | Simulation | Pas d'upload, de décodage ni de fournisseur STT |
+| Vidéo | Simulation | Chapitres/résultats mockés; pas de média, transcodage ou analyse réelle |
+| Studios / exports | Partiel et simulé | CRUD local; plusieurs exports annoncés PDF/PPTX/vidéo produisent des fichiers de remplacement HTML/texte |
+| Workflows | Démonstration locale | Graphe et exécution UI persistés dans le navigateur; pas de worker ni d'orchestration backend |
+| Quotas / facturation | Simulation locale | Compteurs et plans dans `localStorage`; pas de ledger, paiement ni webhook |
+| Administration | Simulation locale | Mutations de plans, utilisateurs, tickets, flags et quotas sans API |
+| API backend | Socle technique uniquement | NestJS, configuration, PostgreSQL/Prisma, health, erreurs, validation globale, Helmet, CORS et OpenAPI |
+| Endpoints métier | Absents | Seuls `GET /api/v1/health/live` et `GET /api/v1/health/ready` sont déclarés |
+| Schéma de données | Ébauche partielle | `User`, `Organization`, `Membership`, `Session` dans Prisma; aucune migration métier confirmée |
+| Tests / CI | Très partiels | Tests backend de configuration et health; pas de tests métier/API/DB ni pipeline CI recensés |
 
-## 3. Inventaire fonctionnel
+## 3. Surfaces et fonctionnalités frontend
+
+Les routes sont définies dans `frontend/src/App.tsx`; les repositories et les contextes s'appuient sur `localStorage` et des données de démonstration.
 
 ### Public
 
-Accueil, fonctionnalités, solutions sectorielles, tarifs, modèles, à propos, FAQ, contact, inscription, connexion et récupération de mot de passe. Le contact ne transmet rien. L'inscription crée localement une organisation, un utilisateur et un abonnement d'essai; le mot de passe du formulaire n'est pas transmis et la valeur de démonstration est utilisée.
+Accueil, fonctionnalités, solutions, tarifs, modèles, à propos, FAQ, contact, connexion, inscription et récupération de mot de passe. La récupération change localement le mot de passe sans preuve d'identité; inscription/contact affichent un parcours local et ne créent/transmettent pas de compte ou demande serveur.
 
-### Workspace client
+### Workspace
 
-- Tableau de bord et activité.
-- Projets : liste, création, suppression.
-- Documents : sélection locale, métadonnées, recherche, suppression.
-- OCR : lancement simulé, champs structurés, validation humaine, export CSV/JSON.
-- Audio : création d'une entrée, transcription/diarisation simulées, livrables dérivés.
-- Vidéo : création d'une entrée, analyse/chapitrage simulés.
-- Studios : document, présentation, contenu marketing, storyboard vidéo.
-- Workflows : CRUD, graphe, nœuds, exécution simulée et logs.
-- Templates et historique de jobs.
-- Usage, quotas, facturation, membres, rôles personnalisés, paramètres.
+- Dashboard et activité; projets; documents et détail; OCR et validation de champs.
+- Audio/transcription/détail; vidéo/analyse/détail.
+- Studios document, présentation, contenu et vidéo; bibliothèque de modèles.
+- Workflows et éditeur; historique/jobs; usage/quota; facturation.
+- Membres, rôles personnalisés et paramètres.
 
-### Administration plateforme
+Les écrans sont utiles comme spécification UX et fixtures, mais leur autorité d'accès, leurs résultats IA, leurs quotas et leur persistance ne sont pas réels.
 
-Dashboard, utilisateurs, organisations, plans, feature flags, revenus/factures, dérogations de quotas, tickets support, audit et paramètres globaux.
+### Backoffice plateforme
 
-## 4. Architecture frontend constatée
+Dashboard, utilisateurs, organisations, plans, fonctionnalités/flags, billing/factures, tickets, audit et paramètres. Les pages et actions existent dans React; elles ne sont ni alimentées ni protégées par un service backend.
 
-- React 19, TypeScript, Vite 8, Tailwind CSS 4, React Router 7.
-- Routes centralisées et imports synchrones de toutes les pages.
-- État transversal par contextes Auth, Quota, Theme et Toast.
-- Interfaces de repositories avec implémentations mock, mais plusieurs écrans accèdent directement au stockage.
-- Persistance `localStorage` préfixée `documind_db_v1_`.
-- Données initiales réalistes regroupées dans un fichier de plus de 1 000 lignes.
-- Design « Crimson & Slate », avec tokens CSS mais nombreuses couleurs hexadécimales en dur.
+## 4. Architecture constatée
 
-## 5. Problèmes techniques vérifiés
+### Frontend
 
-| ID | Constat | Impact | Priorité |
-|---|---|---|---|
-| TECH-01 | Le typecheck échoue sur `durationSeconds` dans le studio vidéo | Build non garanti par le typage | P0 |
-| TECH-02 | Vite produit un bundle principal d'environ 662 Ko minifié | Chargement initial et évolutivité | P1 |
-| TECH-03 | Aucun mode TypeScript `strict`; plusieurs `any`/assertions | Défauts masqués | P0 |
-| TECH-04 | Aucun test, ESLint, Prettier ou CI | Régressions non détectées | P0 |
-| TECH-05 | Repositories, mocks et contextes monolithiques | Maintenance difficile | P1 |
-| TECH-06 | Dépendances serveur/IA inutilisées dans le frontend | Surface et confusion | P2 |
-| TECH-07 | Variables `VITE_DATA_MODE`/API déclarées mais non lues | Migration API non engagée | P1 |
-| TECH-08 | Aucun découpage de code par route | Bundle unique | P2 |
+- React 19, TypeScript, Vite 8, Tailwind CSS 4, React Router 7, Bun (versions de `frontend/package.json`).
+- Routes importées statiquement; contextes Auth, Quota, Theme, Toast.
+- `frontend/src/repositories/index.ts` n'expose que des implémentations Mock; plusieurs pages/contextes lisent directement le stockage.
+- `VITE_DATA_MODE` et `VITE_API_BASE_URL` figurent dans l'exemple d'environnement, mais aucun client HTTP ni usage de ces variables n'a été trouvé.
+- Les fixtures de `frontend/src/mocks/initial-data.ts` ne doivent pas être importées comme données client en production.
 
-## 6. Incohérences et parcours interrompus
+### Backend
 
-- Les libellés PDF/PPTX/vidéo produisent des fichiers HTML.
-- Le fichier document n'est pas conservé; audio et vidéo ne prennent pas de fichier réel.
-- Le formulaire contact affiche un succès sans livraison.
-- La récupération de mot de passe modifie directement la donnée locale sans preuve d'identité.
-- Les permissions ne protègent pas toutes les routes/actions.
-- Le quota `activeWorkflows` est affiché mais pas appliqué à la création.
-- Les connecteurs ERP et intégrations IA sont annoncés mais absents.
+- NestJS 12, Prisma 7, PostgreSQL via `@prisma/adapter-pg`, TypeScript strict (versions dans `backend/package.json` et `backend/tsconfig.json`).
+- Modules présents : Database et Health; l'AppModule installe un identifiant de requête. Le bootstrap configure préfixe `/api/v1`, Helmet, CORS, `ValidationPipe`, filtre d'erreurs et Swagger non production.
+- Health live ne dépend pas de PostgreSQL; readiness fait `SELECT 1`.
+- Aucun module Auth, Tenancy, Files, Documents/OCR, Jobs, Usage, Billing ou Admin n'a été trouvé.
+- Prisma configure sa source depuis `DATABASE_URL`; le schéma contient identité/tenant minimal, mais l'authentification, organisations et autres domaines n'ont pas leurs services ni contrats API.
 
-## 7. Éléments réutilisables
+## 5. Écarts et risques prioritaires
 
-- Taxonomie des domaines, entités et permissions.
-- Parcours et écrans comme référence UX.
-- Interfaces de repositories comme point de départ, après séparation par domaine.
-- Moteur de quotas comme spécification comportementale, à réimplémenter et tester côté backend.
-- Données mockées comme fixtures de tests, après suppression des mots de passe en clair.
+| Priorité | Écart | Conséquence |
+|---|---|---|
+| P0 | Aucun auth/RBAC serveur; le frontend permet le changement local d'utilisateur/organisation | L'UI ne peut pas être considérée comme une frontière de sécurité |
+| P0 | Ébauche Prisma non alignée sur le modèle cible et connexion/migrations non confirmées | Pas de base métier prête à recevoir des données |
+| P0 | Aucune suite de tests métier/API/tenant | Les régressions et accès BOLA resteraient invisibles |
+| P0 | Aucun stockage sécurisé, jobs durables ou OCR réel | Le parcours documentaire ne peut pas traiter des fichiers clients |
+| P1 | API mode frontend absent, data access mixte mock/direct localStorage | Migration progressive et bascule difficile |
+| P1 | Quota local sans transaction; règles de limite nulle/override ne sont pas opposables | Dépassement et consommation incohérente possibles |
+| P1 | Exports, contact, reset, facturation et outils multimodaux simulés | Promesse produit différente du résultat réel |
+| P1 | Typecheck frontend précédemment signalé en échec; la commande `lint` est `tsc --noEmit`, sans linter réel | Qualité actuelle non certifiée; le diagnostic précédent doit être réexécuté avant son lot |
+| P2 | Pages importées statiquement et gros bundle déjà mesuré lors d'un audit antérieur | Temps de chargement et coût de maintenance |
+| P2 | Plusieurs couleurs en dur et incohérences de contraste repérées par l'utilisateur | Cohérence visuelle / accessibilité à traiter dans un lot UI dédié |
 
-## 8. Limites de cet audit
+## 6. Direction proposée
 
-Aucun backend, schéma Prisma, environnement Docker ou API n'existe à auditer. Les performances runtime, l'accessibilité complète, la responsivité réelle et les parcours visuels multi-navigateurs n'ont pas été mesurés durant cette mission documentaire.
+Construire un monolithe modulaire NestJS et livrer un vertical Document/OCR de bout en bout : identité Bearer côté serveur, organisation/membership, projets, upload contrôlé, jobs/usage, extraction OCR avec révision humaine, export réel, puis connecter les repositories frontend de ce vertical. Les sessions utilisent des tokens opaques aléatoires; seul leur hash est stocké. Le choix de fournisseur OCR, stockage/région, Workspace hiérarchique, rétention et facturation demeure ouvert.
 
+La conception des domaines et l'ordre des lots sont détaillés dans [03 — Conception des données](./03-database-design.md), [04 — Contrats API](./04-api-specifications.md), [08 — Feuille de route](./08-roadmap-and-backlog.md) et [09 — Décisions ouvertes](./09-decisions-risks-glossary.md).
+
+## 7. Limites de l'analyse
+
+Analyse statique des routes, pages, contextes, repositories, fixtures, documentation, scripts, dépendances et code NestJS. Aucun build/test ni parcours navigateur n'a été exécuté dans cette analyse; aucun `.env` réel n'a été lu. Les erreurs de connexion PostgreSQL déjà communiquées empêchent de présumer que la base locale est authentifiée ou migrée.

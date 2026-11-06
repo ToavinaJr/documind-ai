@@ -33,7 +33,7 @@ export const AdminRoute: React.FC = () => {
           <div className="pt-4 flex flex-col sm:flex-row gap-2 justify-center">
             <button
               onClick={() => navigate('/workspace/dashboard')}
-              className="px-4 py-2 text-xs font-semibold text-white bg-gradient-to-r from-[#DE1F4F] to-[#C21843] rounded-xl flex items-center justify-center gap-2 shadow-sm"
+              className="px-4 py-2 text-xs font-semibold text-white bg-linear-to-r from-[#DE1F4F] to-[#C21843] rounded-xl flex items-center justify-center gap-2 shadow-sm"
             >
               <ArrowLeft className="w-3.5 h-3.5" />
               <span>Retour au Workspace</span>

@@ -1,6 +1,6 @@
 # 03 — Conception des données PostgreSQL/Prisma
 
-Ce document est une cible conceptuelle. Aucun schéma Prisma ni migration n'est appliqué.
+Ce document décrit la cible relationnelle. Le dépôt contient désormais une ébauche Prisma (`User`, `Organization`, `Membership`, `Session`), mais son alignement, sa génération de migration et son application à PostgreSQL restent à vérifier. Cette ébauche n'est pas encore le modèle métier complet.
 
 ## 1. Conventions
 
@@ -10,6 +10,25 @@ Ce document est une cible conceptuelle. Aucun schéma Prisma ni migration n'est 
 - Contraintes uniques composites pour empêcher les collisions inter/intra-tenant.
 - Suppression logique uniquement là où restauration/rétention l'exige; purge asynchrone auditée.
 - JSON réservé aux configurations variables, jamais aux relations centrales.
+
+## 1.1. Modèle du premier vertical (à livrer par étapes)
+
+Le premier périmètre est l'upload et le traitement OCR d'un document au sein d'une organisation. Les tables MVP sont :
+
+| Groupe | Modèles | Règles structurantes |
+|---|---|---|
+| Identité et tenant | `User`, `Session`, `Organization`, `Membership`, `Invitation` | e-mail normalisé unique; token Bearer aléatoire dont seul le hash est persisté; membership unique par organisation/utilisateur; invitation à usage unique, expirante et liée au tenant |
+| Gouvernance | `Role`, `Permission`, `RolePermission` (ou rôle système enum au premier incrément) | Refus par défaut; permissions évaluées côté serveur; empêcher la suppression/rétrogradation du dernier Owner |
+| Classement | `Project` | Chaque projet porte `organizationId`; accès et unicité sont tenant-scopés |
+| Ingestion | `FileAsset` | tenant et projet, nom d'origine, clé privée de stockage, MIME détecté, octets, checksum, état upload/scan; jamais le binaire en JSON/DB |
+| OCR | `Document`, `ExtractionVersion`, `ExtractionFieldRevision` | document référence un fichier du même tenant; chaque relance crée un job/version; corrections humaines conservent auteur, date et valeur précédente |
+| Asynchronisme | `ProcessingJob`, `JobAttempt` | type/état/progression, clé d'idempotence tenant-scopée, compteurs/retries, erreur normalisée, dates de prise en charge/fin |
+| Quotas | `Plan`, `Entitlement`, `Subscription`, `UsageRecord`, `QuotaOverride` | consommation append-only et dédupliquée par source; vérification et réservation atomiques avec création du job; valeur 0 interdit; override motivé et borné |
+| Traçabilité | `AuditLog` | événements append-only, métadonnées minimisées, aucune donnée de fichier, token ou secret |
+
+Relations clés : `Organization → Membership/Project/FileAsset/ProcessingJob/UsageRecord`; `Project → FileAsset`; `FileAsset → Document`; `Document → ExtractionVersion → FieldRevision`; `ProcessingJob → JobAttempt`; `User → Session/Membership/Invitation/AuditLog`. Chaque FK multi-tenant doit empêcher autant que possible de relier un enfant à un parent d'une autre organisation, via clés composites (ex. `(organizationId, projectId)`) ou vérification repository systématique. Les requêtes de ressource doivent toujours filtrer par tenant et identifiant.
+
+À remettre à une décision produit avant de figer : le frontend porte des `workspaceId` de démonstration, mais la hiérarchie Organization→Workspace n'est pas définie. Le MVP conserve `Organization` comme tenant et `Project` comme classement seulement si cela est validé; ne pas créer une table Workspace ou une permission de workspace par simple déduction des mocks. Les fournisseurs, région, durée de rétention, soft-delete/purge et politique d'abonnement restent également à trancher.
 
 ## 2. ERD proposé
 
@@ -48,6 +67,7 @@ erDiagram
 | Session | userId, tokenHash, expiresAt, revokedAt, device | unique tokenHash; expiresAt | purge après expiration |
 | Organization | name, slug, status, locale, timezone | unique slug | soft delete puis purge |
 | Membership | orgId, userId, roleId, status | unique(orgId,userId); index userId | hard delete auditée |
+| Invitation | orgId, emailNormalized, roleId, tokenHash, expiresAt, acceptedAt, revokedAt | tokenHash unique; index(orgId,emailNormalized,expiresAt) | invalidation et purge selon rétention |
 | Role | orgId nullable, key, name, system | unique(orgId,key) | restreinte si assigné |
 | Permission | key, description | unique key | seed versionné |
 | Project | orgId, title, status, ownerId | index(orgId,status,updatedAt) | politique assets à décider |

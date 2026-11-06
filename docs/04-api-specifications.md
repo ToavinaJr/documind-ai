@@ -3,7 +3,7 @@
 ## 1. Conventions
 
 - Base : `/api/v1`; HTTPS uniquement hors local.
-- Auth : cookie de session `HttpOnly`, `Secure`, `SameSite=Lax` recommandé; CSRF requis pour mutations si cookies.
+- Auth : `Authorization: Bearer <opaque-token>` selon le choix déjà retenu pour le projet. Le token est aléatoire, révocable, à durée limitée; seule son empreinte cryptographique est stockée. Ne jamais placer le token dans `localStorage`; conserver côté navigateur selon le mécanisme retenu pour l'application, idéalement en mémoire avec renouvellement contrôlé. CSRF dépend du mécanisme de stockage/cookie finalement choisi.
 - Identifiants UUID, dates ISO-8601 UTC, montants `{ amountMinor, currency }`.
 - Pagination curseur : `?limit=20&after=<opaque>`, `limit` 1–100.
 - Tri en liste blanche : `?sort=-createdAt,title`; filtres documentés par ressource.
@@ -29,8 +29,8 @@ Codes communs : `200/201/202/204`, `400`, `401`, `403`, `404` (également pour r
 |---|---|---|---|
 | Auth | `POST /auth/register` | public | identité + organisation → session/état vérification |
 | Auth | `POST /auth/login` | public | email/password → session |
-| Auth | `POST /auth/refresh` | session | rotation session |
-| Auth | `POST /auth/logout` | session | `204` |
+| Auth | `POST /auth/refresh` | Bearer/session à renouveler | rotation et invalidation de l'ancien token |
+| Auth | `POST /auth/logout` | Bearer | révocation de la session, `204` |
 | Auth | `POST /auth/password/forgot` | public limité | réponse neutre |
 | Auth | `POST /auth/password/reset` | token | token + nouveau password |
 | Me | `GET /me` | authentifié | user, memberships, permissions |
@@ -71,7 +71,7 @@ Codes communs : `200/201/202/204`, `400`, `401`, `403`, `404` (également pour r
 
 `POST /api/v1/organizations/{orgId}/documents/{documentId}/ocr-jobs`
 
-- Authentification : session active.
+- Authentification : Bearer valide associé à une session active.
 - Permission : `documents.process` et accès au document dans `orgId`.
 - En-têtes : `Idempotency-Key` obligatoire.
 - Préconditions : fichier confirmé, scan réussi, abonnement autorisé, quota disponible, aucun job identique actif.

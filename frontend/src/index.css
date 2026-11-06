@@ -7,54 +7,50 @@
     --font-sans: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
     --font-mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
 
-    /* DocuMind AI Design Tokens — Crimson & Slate */
-    --dm-primary: #DE1F4F;
-    --dm-primary-hover: #C21843;
-    --dm-primary-light: #FCE8EE;
+    /* 60/30/10: neutral canvas, raised surfaces, one restrained crimson accent. */
+    --dm-primary: #B51F42;
+    --dm-primary-hover: #901934;
+    --dm-primary-light: #F8E9ED;
 
-    --dm-secondary: #64748B;
-    --dm-cyan: #3986A8;
-    --dm-pink: #E65B7D;
+    --dm-success: #117554;
+    --dm-warning: #8A5A13;
+    --dm-warning-light: #F7EFDF;
+    --dm-warning-strong: #8A5A13;
+    --dm-danger: #B42334;
 
-    --dm-success: #20A477;
-    --dm-warning: #D99A35;
-    --dm-danger: #DC3545;
-
-    --dm-bg: #F5F8FC;
+    --dm-bg: #F7F7F5;
     --dm-surface: #FFFFFF;
-    --dm-surface-secondary: #EEF2F7;
-    --dm-sidebar: #F5F8FC;
+    --dm-surface-secondary: #EEEEEC;
+    --dm-sidebar: #F3F3F1;
 
-    --dm-text-primary: #0F172A;
-    --dm-text-secondary: #64748B;
+    --dm-text-primary: #171819;
+    --dm-text-secondary: #55585B;
 
-    --dm-border: #DCE3EC;
-    --dm-divider: #E8EDF4;
+    --dm-border: #DADBDD;
+    --dm-divider: #EAEAEA;
   }
 
   .dark {
-    --dm-primary: #DE1F4F;
-    --dm-primary-hover: #F04470;
-    --dm-primary-light: rgba(222, 31, 79, 0.15);
-
-    --dm-secondary: #94A3B8;
-    --dm-cyan: #55A8C9;
-    --dm-pink: #F07896;
+    --dm-primary: #F04470;
+    --dm-primary-hover: #F56B8D;
+    --dm-primary-light: rgba(240, 68, 112, 0.16);
 
     --dm-success: #2CD49B;
     --dm-warning: #F5B352;
+    --dm-warning-light: rgba(245, 179, 82, 0.16);
+    --dm-warning-strong: #9A681F;
     --dm-danger: #EF5967;
 
-    --dm-bg: #09090B;
-    --dm-surface: #1A1A1F;
-    --dm-surface-secondary: #26262D;
-    --dm-sidebar: #0F0F13;
+    --dm-bg: #111213;
+    --dm-surface: #191A1B;
+    --dm-surface-secondary: #222426;
+    --dm-sidebar: #141516;
 
-    --dm-text-primary: #F2F2F5;
-    --dm-text-secondary: #A1A1AA;
+    --dm-text-primary: #F0F0EE;
+    --dm-text-secondary: #A1A3A5;
 
-    --dm-border: #303038;
-    --dm-divider: #25252D;
+    --dm-border: #343638;
+    --dm-divider: #27292B;
   }
 
   body {
@@ -63,8 +59,282 @@
     color: var(--dm-text-primary);
   }
 
+  :root {
+    color-scheme: light;
+  }
+
+  :root.dark {
+    color-scheme: dark;
+  }
+
   code, pre, .font-mono {
     font-family: var(--font-mono);
+  }
+}
+
+/* Unslop design pass by Damir Sokolovsky (CC BY 4.0): https://github.com/heydamir/unslop */
+/* Shared product language for public, workspace, and administration screens. */
+.dm-app {
+  background: var(--dm-bg);
+  color: var(--dm-text-primary);
+  font-family: var(--font-sans);
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.dm-app :where(h1, h2, h3, h4) {
+  font-family: var(--font-sans);
+  letter-spacing: -0.035em;
+  line-height: 1.15;
+  text-wrap: balance;
+}
+
+.dm-app :where(p, li, label, input, textarea, select, button) {
+  letter-spacing: normal;
+}
+
+.dm-app :where(button, a, input, textarea, select) {
+  -webkit-tap-highlight-color: transparent;
+}
+
+.dm-app :where(input, textarea, select) {
+  color: var(--dm-text-primary);
+  background-color: var(--dm-surface);
+  color-scheme: inherit;
+}
+
+.dm-app :where(button, a, input, textarea, select):focus-visible {
+  outline: 2px solid var(--dm-primary);
+  outline-offset: 3px;
+}
+
+.dm-app [class~="uppercase"] {
+  text-transform: none;
+  letter-spacing: normal;
+}
+
+.dm-app [class~="animate-pulse"],
+.dm-app [class~="animate-ping"] {
+  animation: none;
+}
+
+.dm-app [class~="transition-all"] {
+  transition-property: color, background-color, border-color, opacity, transform;
+}
+
+.dm-app [class*="hover:scale-"] {
+  transform: none;
+}
+
+.dm-app [class*="rounded-2xl"] {
+  border-radius: 12px;
+}
+
+.dm-app [class*="rounded-xl"],
+.dm-app [class*="rounded-lg"] {
+  border-radius: 8px;
+}
+
+.dm-app [class*="font-mono"]:not(code, pre) {
+  font-family: var(--font-sans);
+}
+
+.dm-app [class*="bg-gradient-to-"] {
+  background-image: none;
+  background-color: var(--dm-primary);
+}
+
+.dm-app [class*="bg-clip-text"] {
+  color: var(--dm-primary);
+  -webkit-text-fill-color: currentColor;
+}
+
+.dm-app [class*="shadow-sm"],
+.dm-app [class*="shadow-md"],
+.dm-app [class*="shadow-lg"],
+.dm-app [class*="shadow-xl"],
+.dm-app [class*="shadow-2xl"]:not([role="dialog"]) {
+  box-shadow: none;
+}
+
+.dm-app [class*="backdrop-blur"] {
+  backdrop-filter: none;
+}
+
+.dm-app [class*="glow-"] {
+  box-shadow: none;
+}
+
+/* Compatibility layer while legacy screens migrate from hard-coded colors. */
+.dm-app [class~="text-[#64748B]"],
+.dm-app [class~="text-neutral-400"],
+.dm-app [class~="text-neutral-500"] {
+  color: var(--dm-text-secondary);
+}
+
+.dm-app [class~="text-[#DE1F4F]"] {
+  color: var(--dm-primary);
+}
+
+.dm-app [class~="text-[#3986A8]"] {
+  color: var(--dm-primary);
+}
+
+.dm-app [class~="text-[#20A477]"] {
+  color: var(--dm-success);
+}
+
+.dm-app [class~="text-[#D99A35]"] {
+  color: var(--dm-warning);
+}
+
+.dm-app [class~="text-[#D99A35]/80"] {
+  color: var(--dm-warning);
+}
+
+.dm-app [class~="text-emerald-400"],
+.dm-app [class~="text-emerald-600"] {
+  color: var(--dm-success);
+}
+
+.dm-app [class~="text-sky-600"] {
+  color: var(--dm-primary);
+}
+
+.dm-app [class~="text-[#E65B7D]"] {
+  color: var(--dm-primary);
+}
+
+.dm-app [class~="bg-[#E6F1F6]"],
+.dm-app [class~="bg-[#FDEBF0]"],
+.dm-app [class~="bg-[#3986A8]"],
+.dm-app [class~="bg-[#E65B7D]"] {
+  background-color: var(--dm-primary-light);
+}
+
+.dm-app [class~="dark:bg-[#3986A8]/15"],
+.dm-app [class~="dark:bg-[#E65B7D]/15"] {
+  background-color: var(--dm-primary-light);
+}
+
+.dm-app [class~="text-rose-600"] {
+  color: var(--dm-danger);
+}
+
+.dm-app [class~="bg-[#DE1F4F]"] {
+  background-color: var(--dm-primary);
+}
+
+.dm-admin [class~="bg-slate-950"],
+.dm-admin [class~="bg-slate-900"] {
+  background-color: var(--dm-surface);
+}
+
+.dm-admin [class~="bg-slate-950/60"] {
+  background-color: var(--dm-surface-secondary);
+}
+
+.dm-admin [class~="bg-slate-800"],
+.dm-admin [class~="bg-slate-700"],
+.dm-admin [class~="bg-slate-900/40"],
+.dm-admin [class~="bg-slate-800/40"] {
+  background-color: var(--dm-surface-secondary);
+}
+
+.dm-admin [class~="border-slate-800"],
+.dm-admin [class~="border-slate-700"],
+.dm-admin [class~="border-slate-800/80"] {
+  border-color: var(--dm-border);
+}
+
+.dm-admin [class~="divide-slate-800"] > :not(:last-child) {
+  border-color: var(--dm-divider);
+}
+
+.dm-admin [class~="hover:bg-slate-800/40"]:hover {
+  background-color: var(--dm-surface-secondary);
+}
+
+.dm-admin [class~="text-white"] {
+  color: var(--dm-text-primary);
+}
+
+.dm-admin [class~="text-slate-100"],
+.dm-admin [class~="text-slate-200"],
+.dm-admin [class~="text-slate-300"],
+.dm-admin [class~="text-slate-400"] {
+  color: var(--dm-text-secondary);
+}
+
+.dm-admin [class~="text-slate-500"],
+.dm-admin [class~="text-slate-600"] {
+  color: var(--dm-text-secondary);
+}
+
+.dm-admin [class~="text-amber-300"],
+.dm-admin [class~="text-amber-400"],
+.dm-admin [class~="text-amber-400/90"] {
+  color: var(--dm-warning);
+}
+
+.dm-admin button[class~="bg-amber-500"],
+.dm-admin button[class~="bg-amber-500/20"] {
+  background-color: var(--dm-warning-strong);
+  color: #fff;
+}
+
+.dm-admin [class~="bg-amber-500/10"],
+.dm-admin [class~="bg-amber-500/20"] {
+  background-color: var(--dm-warning-light);
+}
+
+.dm-admin [class~="border-amber-500/20"],
+.dm-admin [class~="border-amber-500/30"] {
+  border-color: var(--dm-warning);
+}
+
+/* The demo toolbar is intentionally dark in both themes. Keep native controls
+   independent from the light administration palette, including on Windows. */
+.dm-toolbar,
+.dm-toolbar [class~="text-white"],
+.dm-toolbar select {
+  color: #F2F2F5;
+}
+
+.dm-toolbar [class~="text-[#64748B]"] {
+  color: #A1A1AA;
+}
+
+.dm-toolbar select,
+.dm-toolbar option {
+  background-color: #26262D;
+  color: #F2F2F5;
+}
+
+.dm-app [class~="text-[9px]"],
+.dm-app [class~="text-[10px]"] {
+  font-size: 0.75rem;
+  line-height: 1.35;
+}
+
+@media (max-width: 640px) {
+  .dm-app {
+    font-size: 13px;
+  }
+
+  .dm-app :where(h1) {
+    font-size: clamp(1.75rem, 8vw, 2.5rem);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .dm-app *,
+  .dm-app *::before,
+  .dm-app *::after {
+    scroll-behavior: auto !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
   }
 }
 
@@ -79,23 +349,15 @@
 }
 
 ::-webkit-scrollbar-thumb {
-  background: rgba(222, 31, 79, 0.22);
+  background: color-mix(in srgb, var(--dm-primary) 22%, transparent);
   border-radius: 9999px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: rgba(222, 31, 79, 0.45);
+  background: color-mix(in srgb, var(--dm-primary) 45%, transparent);
 }
 
-/* Subtle glow helpers */
+/* Kept for compatibility while screens move to the shared surface styles. */
 .glow-primary {
-  box-shadow: 0 0 24px -4px rgba(222, 31, 79, 0.22);
-}
-
-.glow-cyan {
-  box-shadow: 0 0 24px -4px rgba(57, 134, 168, 0.20);
-}
-
-.glow-pink {
-  box-shadow: 0 0 24px -4px rgba(230, 91, 125, 0.20);
+  box-shadow: none;
 }

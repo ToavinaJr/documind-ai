@@ -6,4 +6,78 @@ datasource db {
   provider = "postgresql"
 }
 
-// Business models are intentionally deferred until their rules are validated.
+enum UserStatus {
+  ACTIVE
+  SUSPENDED
+}
+
+enum OrganizationStatus {
+  ACTIVE
+  SUSPENDED
+}
+
+enum MembershipRole {
+  ORG_OWNER
+  ORG_ADMIN
+  MANAGER
+  EDITOR
+  VIEWER
+  BILLING_MANAGER
+}
+
+model User {
+  id                String         @id @default(uuid()) @db.Uuid
+  email             String         @unique @db.VarChar(320)
+  passwordHash      String         @db.VarChar(255)
+  firstName         String         @db.VarChar(100)
+  lastName          String         @db.VarChar(100)
+  status            UserStatus     @default(ACTIVE)
+  emailVerifiedAt   DateTime?      @db.Timestamptz(3)
+  createdAt         DateTime       @default(now()) @db.Timestamptz(3)
+  updatedAt         DateTime       @updatedAt @db.Timestamptz(3)
+  memberships       Membership[]
+  sessions          Session[]
+  ownedOrganizations Organization[] @relation("OrganizationOwner")
+
+  @@index([status, createdAt])
+}
+
+model Organization {
+  id        String             @id @default(uuid()) @db.Uuid
+  name      String             @db.VarChar(200)
+  slug      String             @unique @db.VarChar(80)
+  status    OrganizationStatus @default(ACTIVE)
+  ownerId   String             @db.Uuid
+  createdAt DateTime           @default(now()) @db.Timestamptz(3)
+  updatedAt DateTime           @updatedAt @db.Timestamptz(3)
+  owner     User               @relation("OrganizationOwner", fields: [ownerId], references: [id], onDelete: Restrict)
+  members   Membership[]
+
+  @@index([status, createdAt])
+}
+
+model Membership {
+  id             String         @id @default(uuid()) @db.Uuid
+  organizationId String         @db.Uuid
+  userId         String         @db.Uuid
+  role           MembershipRole @default(EDITOR)
+  createdAt      DateTime       @default(now()) @db.Timestamptz(3)
+  organization   Organization   @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  user           User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([organizationId, userId])
+  @@index([userId, createdAt])
+}
+
+model Session {
+  id        String    @id @default(uuid()) @db.Uuid
+  userId    String    @db.Uuid
+  tokenHash String    @unique @db.VarChar(64)
+  expiresAt DateTime  @db.Timestamptz(3)
+  revokedAt DateTime? @db.Timestamptz(3)
+  createdAt DateTime  @default(now()) @db.Timestamptz(3)
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, expiresAt])
+  @@index([expiresAt, revokedAt])
+}

@@ -60,7 +60,7 @@ src/
 ```
 
 - Routes chargées paresseusement par domaine.
-- Client HTTP central : corrélation, refresh contrôlé, erreurs normalisées.
+- Client HTTP central : Bearer tenu en mémoire selon le choix du projet, corrélation, renouvellement contrôlé, erreurs normalisées.
 - Cache serveur via une bibliothèque à choisir; état UI local avec React.
 - Formulaires validés par schémas partagés/générés depuis OpenAPI lorsque pertinent.
 - `PermissionGate` pour l'UX, sans remplacer les contrôles serveur.

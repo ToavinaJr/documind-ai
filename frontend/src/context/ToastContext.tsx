@@ -50,17 +50,18 @@ export const ToastProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       <div className="fixed bottom-4 right-4 z-50 flex flex-col gap-2 max-w-sm w-full pointer-events-none">
         {toasts.map((t) => {
           const icons = {
-            success: <CheckCircle2 className="w-5 h-5 text-emerald-600 dark:text-emerald-400 shrink-0" />,
-            error: <AlertCircle className="w-5 h-5 text-rose-600 dark:text-rose-400 shrink-0" />,
-            warning: <AlertTriangle className="w-5 h-5 text-amber-600 dark:text-amber-400 shrink-0" />,
-            info: <Info className="w-5 h-5 text-sky-600 dark:text-sky-400 shrink-0" />
+            success: <CheckCircle2 className="w-5 h-5 text-emerald-600 dark:text-emerald-400 shrink-0" aria-hidden="true" />,
+            error: <AlertCircle className="w-5 h-5 text-rose-600 dark:text-rose-400 shrink-0" aria-hidden="true" />,
+            warning: <AlertTriangle className="w-5 h-5 text-amber-600 dark:text-amber-400 shrink-0" aria-hidden="true" />,
+            info: <Info className="w-5 h-5 text-sky-600 dark:text-sky-400 shrink-0" aria-hidden="true" />
           };
 
           return (
             <div
               key={t.id}
-              role="alert"
-              className="pointer-events-auto flex items-start gap-3 p-3.5 bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 rounded-lg shadow-lg shadow-neutral-900/5 transition-all text-sm"
+              role={t.type === 'error' ? 'alert' : 'status'}
+              aria-live={t.type === 'error' ? 'assertive' : 'polite'}
+              className="pointer-events-auto flex items-start gap-3 p-3.5 bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 rounded-lg shadow-lg shadow-neutral-900/5 transition-opacity text-sm"
             >
               {icons[t.type]}
               <div className="flex-1 min-w-0">
@@ -72,11 +73,12 @@ export const ToastProvider: React.FC<{ children: React.ReactNode }> = ({ childre
                 )}
               </div>
               <button
+                type="button"
                 onClick={() => removeToast(t.id)}
                 className="text-neutral-400 hover:text-neutral-600 dark:hover:text-neutral-200 shrink-0 p-0.5 rounded transition-colors"
                 aria-label="Fermer la notification"
               >
-                <X className="w-4 h-4" />
+                <X className="w-4 h-4" aria-hidden="true" />
               </button>
             </div>
           );
